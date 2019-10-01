@@ -1,4 +1,4 @@
-# Nicolas Meier
+# Contact
 
 You can write me on GitHub or message me on a Site bellow.
 
