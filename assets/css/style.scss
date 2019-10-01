@@ -1,0 +1,12 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+footer p {
+    display: none;
+}
+
+div header p.view a{
+    display: none;
+}
