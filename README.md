@@ -1,4 +1,4 @@
 # Nicolas Meier
-This is the Website from Nicolas Meier
+This is the Website
 
-- [Contact](./kontakt/)
+- [Contact me](./contact)
