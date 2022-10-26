@@ -1,5 +1,5 @@
 # Nicolas Meier
-This is my Website
+Code. Innovation. Organisation. Hacking.
 
 ## Contact
 
