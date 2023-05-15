@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>model-viewer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        model-viewer {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Import the component -->
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.1.1/model-viewer.min.js"></script>
+
+<!-- Use it like any other HTML element -->
+<model-viewer 
+src="gipfeli.glb"
+ar
+shadow-intensity="1"
+camera-controls
+touch-action="pan-y">
+
+<!--
+
+environment-image="shared-assets/environments/moon_1k.hdr"
+poster="shared-assets/models/NeilArmstrong.webp"
+-->
+</model-viewer>
+</body>
+</html>
