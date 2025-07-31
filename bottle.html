@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spin the Bottle</title>
+    <style>
+        body {
+            background: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #bottle-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+        #bottle {
+            width: 180px;
+            height: 40px;
+            position: absolute;
+            top: 130px;
+            left: 60px;
+            transform-origin: 50% 50%;
+            transition: transform 3s cubic-bezier(.17,.67,.83,.67);
+        }
+        #spin-btn {
+            padding: 12px 32px;
+            font-size: 1.2em;
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        #spin-btn:active {
+            background: #388e3c;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #444;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin the Bottle</h1>
+    <div id="bottle-container">
+        <!-- SVG bottle -->
+        <svg id="bottle" viewBox="0 0 180 40">
+            <ellipse cx="160" cy="20" rx="20" ry="12" fill="#8bc34a"/>
+            <rect x="20" y="8" width="120" height="24" rx="12" fill="#a5d6a7"/>
+            <ellipse cx="20" cy="20" rx="20" ry="12" fill="#8bc34a"/>
+            <rect x="0" y="14" width="20" height="12" rx="6" fill="#795548"/>
+            <rect x="0" y="10" width="20" height="8" rx="4" fill="#d7ccc8"/>
+        </svg>
+    </div>
+    <button id="spin-btn">Spin!</button>
+    <div id="result"></div>
+    <script>
+        const bottle = document.getElementById('bottle');
+        const spinBtn = document.getElementById('spin-btn');
+        const result = document.getElementById('result');
+        let spinning = false;
+        let currentRotation = 0;
+
+        // Example player names (can be customized)
+        const players = [
+            "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Heidi"
+        ];
+
+        function getPlayerByAngle(angle) {
+            // Divide circle into equal slices for each player
+            const slice = 360 / players.length;
+            let idx = Math.floor(((angle % 360) / slice));
+            return players[idx];
+        }
+
+        spinBtn.onclick = function() {
+            if (spinning) return;
+            spinning = true;
+            result.textContent = '';
+            // Random spins between 3 and 6 full rotations + random offset
+            const spins = 1 +  Math.floor(Math.random() * 3) ;
+            const offset = Math.random() * 360;
+            const totalRotation = spins * 360 + offset;
+            bottle.style.transition = 'transform 3s cubic-bezier(.17,.67,.83,.67)';
+            bottle.style.transform = `rotate(${currentRotation + totalRotation}deg)`;
+            setTimeout(() => {
+                //currentRotation = (currentRotation + totalRotation) % 360;
+                //bottle.style.transition = '';
+                //bottle.style.transform = `rotate(${currentRotation}deg)`;
+                // Determine which player it points to
+                spinning = false;
+            }, 3000);
+        };
+    </script>
+</body>
+</html> 

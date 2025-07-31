@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Keyboard</title>
+    <style>
+        body {
+            background: #222;
+            color: #eee;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .keyboard {
+            display: inline-block;
+            background: #333;
+            padding: 24px 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 32px #0008;
+            user-select: none;
+        }
+        .row {
+            display: flex;
+            margin-bottom: 6px;
+        }
+        .key {
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 6px;
+            margin: 2px;
+            min-width: 38px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: background 0.1s, color 0.1s;
+            box-sizing: border-box;
+            position: relative;
+            cursor: default;
+            user-select: none;
+        }
+        .key.wide { min-width: 62px; }
+        .key.xwide { min-width: 90px; }
+        .key.space { min-width: 260px; }
+        .key.iso { min-width: 38px; min-height: 62px; }
+        .key.active {
+            background: #0af;
+            color: #fff;
+            border-color: #0af;
+            box-shadow: 0 0 8px #0af8;
+        }
+        .key .sub {
+            font-size: 0.7em;
+            position: absolute;
+            top: 3px;
+            right: 6px;
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="keyboard" id="keyboard">
+        <!-- Row 1 -->
+        <div class="row">
+            <div class="key" data-key="Backquote"><span>§</span><span class="sub">°</span></div>
+            <div class="key" data-key="Digit1"><span>1</span><span class="sub">+</span></div>
+            <div class="key" data-key="Digit2"><span>2</span><span class="sub">"</span></div>
+            <div class="key" data-key="Digit3"><span>3</span><span class="sub">*</span></div>
+            <div class="key" data-key="Digit4"><span>4</span><span class="sub">ç</span></div>
+            <div class="key" data-key="Digit5"><span>5</span><span class="sub">%</span></div>
+            <div class="key" data-key="Digit6"><span>6</span><span class="sub">&amp;</span></div>
+            <div class="key" data-key="Digit7"><span>7</span><span class="sub">/</span></div>
+            <div class="key" data-key="Digit8"><span>8</span><span class="sub">(</span></div>
+            <div class="key" data-key="Digit9"><span>9</span><span class="sub">)</span></div>
+            <div class="key" data-key="Digit0"><span>0</span><span class="sub">=</span></div>
+            <div class="key" data-key="Minus"><span>'</span><span class="sub">?</span></div>
+            <div class="key" data-key="Equal"><span>^</span><span class="sub">`</span></div>
+            <div class="key wide" data-key="Backspace">Backspace</div>
+        </div>
+        <!-- Row 2 -->
+        <div class="row">
+            <div class="key wide" data-key="Tab">Tab</div>
+            <div class="key" data-key="KeyQ">Q</div>
+            <div class="key" data-key="KeyW">W</div>
+            <div class="key" data-key="KeyE">E</div>
+            <div class="key" data-key="KeyR">R</div>
+            <div class="key" data-key="KeyT">T</div>
+            <div class="key" data-key="KeyZ">Z</div>
+            <div class="key" data-key="KeyU">U</div>
+            <div class="key" data-key="KeyI">I</div>
+            <div class="key" data-key="KeyO">O</div>
+            <div class="key" data-key="KeyP">P</div>
+            <div class="key" data-key="BracketLeft">Ü</div>
+            <div class="key" data-key="BracketRight">¨</div>
+            <div class="key xwide" data-key="Enter">Enter</div>
+        </div>
+        <!-- Row 3 -->
+        <div class="row">
+            <div class="key xwide" data-key="CapsLock">Caps Lock</div>
+            <div class="key" data-key="KeyA">A</div>
+            <div class="key" data-key="KeyS">S</div>
+            <div class="key" data-key="KeyD">D</div>
+            <div class="key" data-key="KeyF">F</div>
+            <div class="key" data-key="KeyG">G</div>
+            <div class="key" data-key="KeyH">H</div>
+            <div class="key" data-key="KeyJ">J</div>
+            <div class="key" data-key="KeyK">K</div>
+            <div class="key" data-key="KeyL">L</div>
+            <div class="key" data-key="Semicolon">Ö</div>
+            <div class="key" data-key="Quote">Ä</div>
+            <div class="key" data-key="Backslash">$</div>
+            <div class="key wide" data-key="Enter">Enter</div>
+        </div>
+        <!-- Row 4 -->
+        <div class="row">
+            <div class="key xwide" data-key="ShiftLeft">Shift</div>
+            <div class="key" data-key="IntlBackslash">&lt;</div>
+            <div class="key" data-key="KeyY">Y</div>
+            <div class="key" data-key="KeyX">X</div>
+            <div class="key" data-key="KeyC">C</div>
+            <div class="key" data-key="KeyV">V</div>
+            <div class="key" data-key="KeyB">B</div>
+            <div class="key" data-key="KeyN">N</div>
+            <div class="key" data-key="KeyM">M</div>
+            <div class="key" data-key="Comma">,</div>
+            <div class="key" data-key="Period">.</div>
+            <div class="key" data-key="Slash">-</div>
+            <div class="key xwide" data-key="ShiftRight">Shift</div>
+        </div>
+        <!-- Row 5 -->
+        <div class="row">
+            <div class="key wide" data-key="ControlLeft">Ctrl</div>
+            <div class="key wide" data-key="MetaLeft">Win</div>
+            <div class="key wide" data-key="AltLeft">Alt</div>
+            <div class="key space" data-key="Space"></div>
+            <div class="key wide" data-key="AltRight">Alt Gr</div>
+            <div class="key wide" data-key="MetaRight">Win</div>
+            <div class="key wide" data-key="ContextMenu">Menu</div>
+            <div class="key wide" data-key="ControlRight">Ctrl</div>
+        </div>
+    </div>
+    <script>
+        // Map for special key codes to data-key attributes
+        const keyMap = {
+            'Esc': 'Escape',
+            'Spacebar': 'Space',
+            'Win': 'MetaLeft',
+            'Menu': 'ContextMenu'
+        };
+
+        function getKeySelector(event) {
+            let code = event.code;
+            // For some keys, event.code is not always set as expected
+            if (event.key === ' ' || event.code === 'Space') return '[data-key="Space"]';
+            if (event.key === 'AltGraph') return '[data-key="AltRight"]';
+            if (event.key === 'ContextMenu') return '[data-key="ContextMenu"]';
+            if (event.key === 'Meta') {
+                // Distinguish left/right meta
+                return event.location === 1 ? '[data-key="MetaLeft"]' : '[data-key="MetaRight"]';
+            }
+            if (event.key === 'Control') {
+                return event.location === 1 ? '[data-key="ControlLeft"]' : '[data-key="ControlRight"]';
+            }
+            if (event.key === 'Shift') {
+                return event.location === 1 ? '[data-key="ShiftLeft"]' : '[data-key="ShiftRight"]';
+            }
+            if (event.key === 'Alt') {
+                return event.location === 1 ? '[data-key="AltLeft"]' : '[data-key="AltRight"]';
+            }
+            // Fallback to code
+            return `[data-key="${code}"]`;
+        }
+
+        function highlightKey(event) {
+            const selector = getKeySelector(event);
+            const keyDiv = document.querySelector(selector);
+            if (keyDiv) keyDiv.classList.add('active');
+        }
+
+        function unhighlightKey(event) {
+            const selector = getKeySelector(event);
+            const keyDiv = document.querySelector(selector);
+            if (keyDiv) keyDiv.classList.remove('active');
+        }
+
+        window.addEventListener('keydown', function(event) {
+            highlightKey(event);
+        });
+
+        window.addEventListener('keyup', function(event) {
+            unhighlightKey(event);
+        });
+
+        // Remove highlight if window loses focus
+        window.addEventListener('blur', function() {
+            document.querySelectorAll('.key.active').forEach(k => k.classList.remove('active'));
+        });
+    </script>
+</body>
+</html>
