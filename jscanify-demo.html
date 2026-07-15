@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jscanify Camera Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8fafc;
+      color: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      background: radial-gradient(circle at top, #e2e8f0, #f8fafc 40%);
+    }
+
+    .page {
+      width: min(1200px, 100%);
+      display: grid;
+      gap: 24px;
+    }
+
+    .panel {
+      border-radius: 32px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: white;
+      box-shadow: 0 45px 80px rgba(15, 23, 42, 0.08);
+      padding: 28px;
+    }
+
+    .heading {
+      display: grid;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 2.5vw, 3rem);
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.75;
+      color: #475569;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 9999px;
+      background: #f8fafc;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      color: #0f172a;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .columns {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .card {
+      display: grid;
+      gap: 16px;
+      padding: 20px;
+      border-radius: 28px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #f8fafc;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .media-frame {
+      border-radius: 24px;
+      overflow: hidden;
+      background: #000;
+      min-height: 280px;
+      display: grid;
+      place-items: center;
+    }
+
+    img,
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 9999px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: #0f172a;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #0f172a;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+    }
+
+    .btn-disabled {
+      background: #e2e8f0;
+      color: #64748b;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .output-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .output-card {
+      border-radius: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: white;
+      min-height: 320px;
+      padding: 18px;
+    }
+
+    .output-card .media-frame {
+      min-height: 260px;
+    }
+
+    .caption {
+      color: #64748b;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .note {
+      margin-top: 12px;
+      font-size: 0.92rem;
+      color: #475569;
+    }
+
+    @media (max-width: 900px) {
+      .columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="panel heading">
+      <div>
+        <h1>jscanify + Camera Demo</h1>
+        <p>Use OpenCV and jscanify inside a single HTML page to capture a photo, highlight paper edges, and extract a perspective-corrected scan.</p>
+      </div>
+      <div class="status" id="status">Loading demo…</div>
+    </section>
+
+    <section class="panel grid columns">
+      <div class="card">
+        <p class="section-title">Source image</p>
+        <div class="media-frame" id="source-frame">
+          <img id="source-image" src="https://raw.githubusercontent.com/ColonelParrot/jscanify/master/docs/images/highlight-paper1.png" alt="Document source" />
+        </div>
+        <div class="toolbar">
+          <button class="btn-primary" id="start-camera">Start camera</button>
+          <button class="btn-primary" id="capture-photo">Capture photo</button>
+          <button class="btn-secondary" id="use-sample">Use sample image</button>
+        </div>
+        <div class="media-frame" id="video-frame" style="display:none;">
+          <video id="camera-video" playsinline muted></video>
+        </div>
+        <p class="note">For best results, allow camera access and aim at a document on a flat surface. If the camera does not start, ensure you are using a supported browser and secure connection.</p>
+      </div>
+
+      <div class="grid output-grid">
+        <div class="output-card">
+          <p class="section-title">Highlighted paper</p>
+          <div class="media-frame" id="highlight-frame">
+            <span class="caption">Scanned edge detection will appear here.</span>
+          </div>
+        </div>
+        <div class="output-card">
+          <p class="section-title">Extracted scan</p>
+          <div class="media-frame" id="extract-frame">
+            <span class="caption">The perspective-corrected scan will appear here.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://docs.opencv.org/4.7.0/opencv.js" async></script>
+  <script src="https://cdn.jsdelivr.net/gh/ColonelParrot/jscanify@master/src/jscanify.min.js"></script>
+  <script>
+    const statusEl = document.getElementById("status");
+    const startCameraButton = document.getElementById("start-camera");
+    const capturePhotoButton = document.getElementById("capture-photo");
+    const useSampleButton = document.getElementById("use-sample");
+    const sourceImage = document.getElementById("source-image");
+    const sourceFrame = document.getElementById("source-frame");
+    const videoFrame = document.getElementById("video-frame");
+    const cameraVideo = document.getElementById("camera-video");
+    const highlightFrame = document.getElementById("highlight-frame");
+    const extractFrame = document.getElementById("extract-frame");
+
+    let scanner = null;
+    let stream = null;
+
+    const SIMPLE_IMAGE_URL = "https://raw.githubusercontent.com/ColonelParrot/jscanify/master/docs/images/highlight-paper1.png";
+    const currentState = {
+      ready: false,
+      usingCamera: false,
+    };
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? "#b91c1c" : "#0f172a";
+      statusEl.style.background = isError ? "#fee2e2" : "#f8fafc";
+    }
+
+    function clearResults() {
+      highlightFrame.innerHTML = "";
+      extractFrame.innerHTML = "";
+    }
+
+    function ensureOpencvReady() {
+      return new Promise((resolve, reject) => {
+        if (window.cv && window.cv.Mat) {
+          resolve();
+          return;
+        }
+        const timeout = setTimeout(() => reject(new Error("OpenCV load timed out.")), 15000);
+        const interval = setInterval(() => {
+          if (window.cv && window.cv.Mat) {
+            clearInterval(interval);
+            clearTimeout(timeout);
+            resolve();
+          }
+        }, 200);
+      });
+    }
+
+    async function initializeScanner() {
+      try {
+        setStatus("Loading OpenCV...");
+        await ensureOpencvReady();
+        setStatus("Initializing jscanify...");
+        if (window.jscanify) {
+          scanner = new window.jscanify();
+          currentState.ready = true;
+          setStatus("Ready. Use the sample image or start the camera.");
+          processImage(sourceImage);
+        } else {
+          throw new Error("jscanify failed to load.");
+        }
+      } catch (error) {
+        setStatus(error.message || String(error), true);
+      }
+    }
+
+    function processImage(imageElement) {
+      if (!currentState.ready || !scanner) {
+        return;
+      }
+      try {
+        clearResults();
+        const highlighted = scanner.highlightPaper(imageElement, { color: "#f97316", thickness: 6 });
+        const extracted = scanner.extractPaper(imageElement, 500, 700);
+        if (highlighted) {
+          highlightFrame.innerHTML = "";
+          highlightFrame.appendChild(highlighted);
+        }
+        if (extracted) {
+          extractFrame.innerHTML = "";
+          extractFrame.appendChild(extracted);
+        }
+        setStatus("Image scanned successfully.");
+      } catch (error) {
+        setStatus(error.message || "Scan failed.", true);
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      cameraVideo.srcObject = null;
+      currentState.usingCamera = false;
+      videoFrame.style.display = "none";
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus("Camera access is not supported by this browser.", true);
+        return;
+      }
+
+      try {
+        stopCamera();
+        setStatus("Starting camera...");
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        cameraVideo.srcObject = stream;
+        cameraVideo.playsInline = true;
+        cameraVideo.muted = true;
+        videoFrame.style.display = "block";
+        await cameraVideo.play();
+        currentState.usingCamera = true;
+        setStatus("Camera active. Capture a photo.");
+      } catch (error) {
+        setStatus(error.message || "Unable to open camera.", true);
+      }
+    }
+
+    async function capturePhoto() {
+      if (!currentState.usingCamera || !cameraVideo.videoWidth || !cameraVideo.videoHeight) {
+        setStatus("Camera is not ready yet.", true);
+        return;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = cameraVideo.videoWidth;
+      canvas.height = cameraVideo.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        setStatus("Could not capture photo.", true);
+        return;
+      }
+      ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+      const url = canvas.toDataURL("image/png");
+      sourceImage.src = url;
+      sourceImage.onload = () => processImage(sourceImage);
+      sourceImage.onerror = () => setStatus("Captured image could not load.", true);
+      setStatus("Photo captured. Scanning...");
+    }
+
+    startCameraButton.addEventListener("click", startCamera);
+    capturePhotoButton.addEventListener("click", capturePhoto);
+    useSampleButton.addEventListener("click", () => {
+      stopCamera();
+      sourceImage.src = SIMPLE_IMAGE_URL;
+      sourceImage.onload = () => processImage(sourceImage);
+      setStatus("Using sample image.");
+    });
+
+    sourceImage.addEventListener("load", () => {
+      if (currentState.ready) {
+        processImage(sourceImage);
+      }
+    });
+
+    initializeScanner();
+  </script>
+</body>
+</html>
