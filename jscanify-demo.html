@@ -177,6 +177,45 @@
       color: #475569;
     }
 
+    .processing-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.64);
+      backdrop-filter: blur(6px);
+    }
+
+    .processing-overlay.hidden {
+      display: none;
+    }
+
+    .processing-card {
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+      padding: 24px 28px;
+      border-radius: 24px;
+      background: white;
+      color: #0f172a;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 4px solid rgba(15, 23, 42, 0.1);
+      border-top-color: #f97316;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     @media (max-width: 900px) {
       .columns {
         grid-template-columns: 1fr;
@@ -203,6 +242,7 @@
         <div class="toolbar">
           <button class="btn-primary" id="start-camera">Start camera</button>
           <button class="btn-primary" id="capture-photo">Capture photo</button>
+          <button class="btn-secondary" id="stop-camera">Stop camera</button>
           <button class="btn-secondary" id="use-sample">Use sample image</button>
         </div>
         <div class="media-frame" id="video-frame" style="display:none;">
@@ -228,12 +268,20 @@
     </section>
   </div>
 
+  <div class="processing-overlay hidden" id="processing-overlay">
+    <div class="processing-card">
+      <div class="spinner"></div>
+      <div id="processing-label">Scanning…</div>
+    </div>
+  </div>
+
   <script src="https://docs.opencv.org/4.7.0/opencv.js" async></script>
   <script src="https://cdn.jsdelivr.net/gh/ColonelParrot/jscanify@master/src/jscanify.min.js"></script>
   <script>
     const statusEl = document.getElementById("status");
     const startCameraButton = document.getElementById("start-camera");
     const capturePhotoButton = document.getElementById("capture-photo");
+    const stopCameraButton = document.getElementById("stop-camera");
     const useSampleButton = document.getElementById("use-sample");
     const sourceImage = document.getElementById("source-image");
     const sourceFrame = document.getElementById("source-frame");
@@ -241,6 +289,8 @@
     const cameraVideo = document.getElementById("camera-video");
     const highlightFrame = document.getElementById("highlight-frame");
     const extractFrame = document.getElementById("extract-frame");
+    const processingOverlay = document.getElementById("processing-overlay");
+    const processingLabel = document.getElementById("processing-label");
 
     let scanner = null;
     let stream = null;
@@ -255,6 +305,11 @@
       statusEl.textContent = message;
       statusEl.style.color = isError ? "#b91c1c" : "#0f172a";
       statusEl.style.background = isError ? "#fee2e2" : "#f8fafc";
+    }
+
+    function setBusy(isBusy, message = "Scanning…") {
+      processingLabel.textContent = message;
+      processingOverlay.classList.toggle("hidden", !isBusy);
     }
 
     function clearResults() {
@@ -297,14 +352,52 @@
       }
     }
 
-    function processImage(imageElement) {
+    function preprocessImage(imageElement) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const maxDim = 1400;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Could not prepare the image."));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const { data } = imageData;
+          for (let i = 0; i < data.length; i += 4) {
+            const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            const adjusted = Math.min(255, Math.max(0, (gray - 128) * 1.25 + 128));
+            data[i] = adjusted;
+            data[i + 1] = adjusted;
+            data[i + 2] = adjusted;
+          }
+          ctx.putImageData(imageData, 0, 0);
+          const processed = new Image();
+          processed.onload = () => resolve(processed);
+          processed.onerror = () => reject(new Error("Could not process the image."));
+          processed.src = canvas.toDataURL("image/jpeg", 0.95);
+        };
+        img.onerror = () => reject(new Error("The selected image could not be loaded."));
+        img.src = imageElement.currentSrc || imageElement.src;
+      });
+    }
+
+    async function processImage(imageElement) {
       if (!currentState.ready || !scanner) {
         return;
       }
       try {
+        setBusy(true, "Preparing scan…");
         clearResults();
-        const highlighted = scanner.highlightPaper(imageElement, { color: "#f97316", thickness: 6 });
-        const extracted = scanner.extractPaper(imageElement, 500, 1000);
+        const processedImage = await preprocessImage(imageElement);
+        const highlighted = scanner.highlightPaper(processedImage, { color: "#f97316", thickness: 6 });
+        const extracted = scanner.extractPaper(processedImage, 500, 1000);
         if (highlighted) {
           highlightFrame.innerHTML = "";
           highlightFrame.appendChild(highlighted);
@@ -316,6 +409,8 @@
         setStatus("Image scanned successfully.");
       } catch (error) {
         setStatus(error.message || "Scan failed.", true);
+      } finally {
+        setBusy(false);
       }
     }
 
@@ -357,23 +452,32 @@
         return;
       }
       const canvas = document.createElement("canvas");
-      canvas.width = cameraVideo.videoWidth;
-      canvas.height = cameraVideo.videoHeight;
+      const width = cameraVideo.videoWidth;
+      const height = cameraVideo.videoHeight;
+      const scale = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = width * scale;
+      canvas.height = height * scale;
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         setStatus("Could not capture photo.", true);
         return;
       }
-      ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
-      const url = canvas.toDataURL("image/png");
+      ctx.scale(scale, scale);
+      ctx.drawImage(cameraVideo, 0, 0, width, height);
+      const url = canvas.toDataURL("image/jpeg", 0.95);
       sourceImage.src = url;
       sourceImage.onload = () => processImage(sourceImage);
       sourceImage.onerror = () => setStatus("Captured image could not load.", true);
+      stopCamera();
       setStatus("Photo captured. Scanning...");
     }
 
     startCameraButton.addEventListener("click", startCamera);
     capturePhotoButton.addEventListener("click", capturePhoto);
+    stopCameraButton.addEventListener("click", () => {
+      stopCamera();
+      setStatus("Camera stopped.");
+    });
     useSampleButton.addEventListener("click", () => {
       stopCamera();
       sourceImage.src = SIMPLE_IMAGE_URL;
