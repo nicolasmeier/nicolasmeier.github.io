@@ -397,7 +397,9 @@
         clearResults();
         const processedImage = await preprocessImage(imageElement);
         const highlighted = scanner.highlightPaper(processedImage, { color: "#f97316", thickness: 6 });
-        const extracted = scanner.extractPaper(processedImage, 500, 1000);
+        const a4Width = 794;
+        const a4Height = 1123;
+        const extracted = scanner.extractPaper(processedImage, a4Width, a4Height);
         if (highlighted) {
           highlightFrame.innerHTML = "";
           highlightFrame.appendChild(highlighted);
