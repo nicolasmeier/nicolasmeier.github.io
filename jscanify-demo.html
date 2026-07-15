@@ -304,7 +304,7 @@
       try {
         clearResults();
         const highlighted = scanner.highlightPaper(imageElement, { color: "#f97316", thickness: 6 });
-        const extracted = scanner.extractPaper(imageElement, 500, 700);
+        const extracted = scanner.extractPaper(imageElement, 500, 1000);
         if (highlighted) {
           highlightFrame.innerHTML = "";
           highlightFrame.appendChild(highlighted);
